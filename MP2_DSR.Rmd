@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(dplyr)
+library(ggplot2)
 ```
 
 ```{r}
@@ -58,4 +59,43 @@ main_filter_select_grouped <- main_filter_select %>%
   summarise_all(funs(sum), na.rm=TRUE)
 ```
 
+```{r}
+main_filter_select_grouped_DR <-main_filter_select_grouped %>%
+  group_by(cand_party_affiliation) %>% 
+  spread(key = cand_party_affiliation, value = c("general_votes", "primary_votes", "transaction_amt"))
+```
 
+```{r}
+main_filter_select_grouped_D <- main_filter_select_grouped %>% 
+  filter(cand_party_affiliation == "DEM")
+```
+
+```{r}
+main_filter_select_grouped_R <- main_filter_select_grouped %>% 
+  filter(cand_party_affiliation == "REP")
+```
+
+```{r}
+main_DR <- left_join(main_filter_select_grouped_D, main_filter_select_grouped_R, by = "cand_office_state")
+```
+
+```{r}
+main_DR1 <- main_DR %>% 
+  gather(key = "cand_party", value = "general_votes.x", -cand_office_state, -general_votes.y, -primary_votes.x, -primary_votes.y, -tran)
+```
+
+
+
+```{r}
+ggplot(main_filter_select_grouped, aes(x = transaction_amt, y = general_votes, color = cand_party_affiliation)) +
+  geom_line()
+```
+
+```{r}
+ggplot(main_filter_select_grouped, aes(x = transaction_amt, y = general_votes)) + 
+  geom_point(size = 2, alpha = 0.7) +
+  geom_line(aes(color = cand_party_affiliation), alpha = 0.7) +
+  scale_x_continuous(name = "Amount of Money Contributed") +
+  scale_y_continuous(name = "Number of General Votes") +
+  ggtitle("How Donations Affected Voting Outcomes in Swing States During 2012")
+```
