@@ -1,0 +1,127 @@
+---
+title: "MP2"
+author: "Sameera Jhunjhunwala"
+date: "3/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+#approval <- read_csv("data/presapproval.csv")
+```
+
+```{r}
+load("house_elections.rda")
+load("candidates.rda")
+load("committees.rda")
+load("contributions.rda")
+```
+
+```{r}
+#meging candidates and contributions
+cand_contrib_merge <- full_join(candidates, contributions, by = "cand_id")
+```
+
+```{r}
+#Rename the variable in house_elections to make it easier to merge
+house_elections_1 <- house_elections %>%
+  rename(cand_id = fec_id)
+```
+
+```{r}
+#merging (cand_contrib_merge) with house_elections
+cand_contrib_house_merge <- full_join(cand_contrib_merge, house_elections_1, by="cand_id")
+```
+
+```{r}
+#filtering to keep observations that pertain to 2012 and to House elections 
+main_filter <- cand_contrib_house_merge %>% 
+  filter(cand_election_yr == 2012) %>% 
+  filter(cand_office == "H")
+```
+
+```{r}
+#Kepping the variables we need to our analysis
+main_filter_select <- main_filter %>% 
+  select(general_votes, cand_office_state, cand_party_affiliation, primary_votes, transaction_amt)
+```
+
+
+```{r}
+#Adding the numeric variables together so that we have one observation per party for ech state 
+main_filter_select_grouped <- main_filter_select %>% 
+  group_by(cand_office_state, cand_party_affiliation) %>% 
+  summarise_all(funs(sum), na.rm=TRUE)
+```
+
+```{r}
+#Keeping only democratic and republican candidates' data 
+main_filter_select_grouped_DR <- main_filter_select_grouped %>% 
+  filter(cand_party_affiliation %in% c("DEM", "REP"))
+```
+
+
+```{r}
+#creating a function to filter out all the swing states
+Filtering_swing_states <- function(State_stats) {
+  main_filter_select_grouped_DR %>% 
+    filter(cand_office_state == State_stats)
+}
+```
+
+```{r}
+#testing the function 
+Filtering_swing_states("AK")
+```
+
+```{r}
+#Creating a vector to map the functions 
+swing_states_list <- c("FL", "CO", "IA", "NV", "NH", "NC", "OH", "VA", "WI")
+```
+
+```{r}
+#Creating a list of all the data pertaing to swing states 
+Swing_States_filtered <- map(swing_states_list, Filtering_swing_states)
+```
+
+```{r}
+#Creating a data frame of all the swing states
+Swing_States <- map_df(swing_states_list, Filtering_swing_states)
+```
+
+
+```{r}
+#Plotting the data for all states 
+ggplot(main_filter_select_grouped_DR, aes(x = transaction_amt, y = general_votes, color = forcats::fct_rev(cand_party_affiliation), label = cand_office_state)) +
+  #geom_point(size = 2, alpha = 0.7) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  #geom_line(aes(color = cand_party_affiliation), alpha = 0.7) +
+  scale_x_continuous(name = "Total Contributions (Dollars)") +
+  scale_y_continuous(name = "Number of General Votes") +
+  ggtitle("The Impact of Campaign Contributions on Voting Outcomes in 2012") + 
+  labs(colour="Political Party")
+```
+
+
+
+```{r}
+#Plotting the data for Swing States
+ggplot(Swing_States, aes(x = transaction_amt, y = general_votes, color = forcats::fct_rev(cand_party_affiliation), label = cand_office_state)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_x_continuous(name = "Total Contributions (Dollars)") +
+  scale_y_continuous(name = "Number of General Votes") +
+  ggtitle("The Impact of Campaign Contributions on Voting Outcomes in Swing States in 2012") + 
+  labs(colour="Political Party")
+```
+
