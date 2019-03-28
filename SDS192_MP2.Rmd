@@ -1,9 +1,11 @@
 ---
-title: "MP2"
+title: "Mini Project 2: Group I"
 author: "Sameera Jhunjhunwala"
 date: "3/27/2019"
 output: html_document
 ---
+
+#Mini Project 2: Data Wrangling 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -113,7 +115,7 @@ ggplot(main_filter_select_grouped_DR, aes(x = transaction_amt, y = general_votes
   scale_x_continuous(name = "Total Contributions (Dollars)") +
   scale_y_continuous(name = "Number of General Votes") +
   ggtitle("The Impact of Campaign Contributions on Voting Outcomes in 2012") + 
-  labs(colour="Political Party")
+  labs(title = "Campaign Contributions and National Voting Outcomes", subtitle = "The Impact of Campaign Contributions on Voting Outcomes for all states in 2012",colour="Political Party")
 ```
 
 
@@ -124,7 +126,6 @@ ggplot(Swing_States, aes(x = transaction_amt, y = general_votes, color = forcats
   geom_smooth(method = "lm") +
   scale_x_continuous(name = "Total Contributions (Dollars)") +
   scale_y_continuous(name = "Number of General Votes") +
-  ggtitle("The Impact of Campaign Contributions on Voting Outcomes in Swing States in 2012") + 
-  labs(colour="Political Party")
+  labs(title = "Campaign Contributions and Voting Outcomes in Swing States", subtitle = "The Impact of Campaign Contributions on Voting Outcomes in Swing States in 2012", colour="Political Party")
 ```
 
